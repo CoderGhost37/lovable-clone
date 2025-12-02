@@ -1,0 +1,83 @@
+###############################################
+# macOS system files
+###############################################
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+Desktop.ini
+
+###############################################
+# Node / JavaScript (React, Next.js)
+###############################################
+# dependencies
+node_modules/
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+
+# build output
+.next/
+out/
+dist/
+build/
+
+# env
+.env
+.env.local
+.env.production
+.env.development
+.env.test
+*.env.*
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# misc
+*.tsbuildinfo
+
+###############################################
+# Java / Spring Boot
+###############################################
+# Maven / Gradle
+target/
+build/
+logs/
+*.log
+.idea/
+*.iml
+
+# IntelliJ / Eclipse
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+
+# JVM files
+*.class
+*.jar
+*.war
+*.ear
+
+###############################################
+# OS + Editor
+###############################################
+# VSCode
+.vscode/
+
+# system
+Thumbs.db
+*.swp
+*.swo
+*.tmp
+
+###############################################
+# Backup files
+###############################################
+*.bak
+*.orig
+*.rej
