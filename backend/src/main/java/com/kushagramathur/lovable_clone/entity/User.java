@@ -22,11 +22,9 @@ public class User {
 
     private String name;
 
-    private String email;
+    private String username;
 
-    private String passwordHash;
-
-    private String avatarUrl;
+    private String password;
 
     private Instant deletedAt;
 

@@ -4,9 +4,13 @@ import com.kushagramathur.lovable_clone.dto.project.ProjectRequest;
 import com.kushagramathur.lovable_clone.dto.project.ProjectResponse;
 import com.kushagramathur.lovable_clone.dto.project.ProjectSummaryResponse;
 import com.kushagramathur.lovable_clone.entity.Project;
+import com.kushagramathur.lovable_clone.entity.ProjectMember;
+import com.kushagramathur.lovable_clone.entity.ProjectMemberId;
 import com.kushagramathur.lovable_clone.entity.User;
+import com.kushagramathur.lovable_clone.enums.ProjectRole;
 import com.kushagramathur.lovable_clone.error.ResourceNotFoundException;
 import com.kushagramathur.lovable_clone.mapper.ProjectMapper;
+import com.kushagramathur.lovable_clone.repository.ProjectMemberRepository;
 import com.kushagramathur.lovable_clone.repository.ProjectRepository;
 import com.kushagramathur.lovable_clone.repository.UserRepository;
 import com.kushagramathur.lovable_clone.service.ProjectService;
@@ -25,6 +29,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
     private final ProjectMapper projectMapper;
+    private final ProjectMemberRepository projectMemberRepository;
 
     @Override
     public List<ProjectSummaryResponse> getUserProjects(Long userId) {
@@ -40,13 +45,26 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public ProjectResponse createProject(ProjectRequest request, Long userId) {
-        User owner = userRepository.findById(userId).orElseThrow();
+        User owner = userRepository.findById(userId).orElseThrow(
+                () -> new ResourceNotFoundException("User", userId.toString())
+        );
         Project project = Project
                 .builder()
                 .name(request.name())
                 .isPublic(false)
-                .owner(owner)
                 .build();
+
+        ProjectMemberId projectMemberId = new ProjectMemberId(project.getId(), owner.getId());
+        ProjectMember projectMember = ProjectMember.builder()
+                .id(projectMemberId)
+                .role(ProjectRole.OWNER)
+                .user(owner)
+                .acceptedAt(Instant.now())
+                .invitedAt(Instant.now())
+                .project(project)
+                .build();
+        projectMemberRepository.save(projectMember);
+
         project = projectRepository.save(project);
         return projectMapper.toProjectResponse(project);
     }
@@ -62,9 +80,6 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public void softDelete(Long id, Long userId) {
         Project project = getAccessibleProjectById(id, userId);
-        if (project.getOwner().getId().equals(userId)) {
-            throw new RuntimeException("You are not allowed to delete the project");
-        }
 
         project.setDeletedAt(Instant.now());
         projectRepository.save(project);
