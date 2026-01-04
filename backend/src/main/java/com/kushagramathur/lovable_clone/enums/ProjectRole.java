@@ -1,5 +1,22 @@
 package com.kushagramathur.lovable_clone.enums;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+import java.util.Set;
+import static com.kushagramathur.lovable_clone.enums.ProjectPermission.*;
+
+@RequiredArgsConstructor
+@Getter
 public enum ProjectRole {
-    EDITOR, VIEWER, OWNER
+    EDITOR(VIEW, EDIT, DELETE, VIEW_MEMBERS),
+    VIEWER(Set.of(VIEW, VIEW_MEMBERS)),
+    OWNER(Set.of(VIEW, EDIT, DELETE, VIEW_MEMBERS, MANAGE_MEMBERS));
+
+    private final Set<ProjectPermission> permissions;
+
+    // we can use this constructor to directly write the permissions instead of using Set.of() as done above for EDITOR
+    ProjectRole(ProjectPermission... permissions) {
+        this.permissions = Set.of(permissions);
+    }
 }
