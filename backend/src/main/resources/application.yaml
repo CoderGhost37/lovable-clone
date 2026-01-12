@@ -22,7 +22,7 @@ jwt:
 
 stripe:
   api:
-    secret: sk_test_51SmYiZSwVhOTUZEco3ALtN2qkjRDfVVWeRdZKxB5IjWHYA6TpQWFC1YemzTagqEGRPSdOCbIv6VP24eFeqUjZMLe00dkEFWmom
+    secret:
   webhook:
     secret: whsec_130fa616de516e5ad291ec1e9bd8dac5008dad21daff078ae5ed3ae052967195
 

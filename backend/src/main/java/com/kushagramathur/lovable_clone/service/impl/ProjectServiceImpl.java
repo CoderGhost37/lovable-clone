@@ -15,6 +15,7 @@ import com.kushagramathur.lovable_clone.repository.ProjectRepository;
 import com.kushagramathur.lovable_clone.repository.UserRepository;
 import com.kushagramathur.lovable_clone.security.AuthUtil;
 import com.kushagramathur.lovable_clone.service.ProjectService;
+import com.kushagramathur.lovable_clone.service.SubscriptionService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -33,6 +34,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final ProjectMapper projectMapper;
     private final ProjectMemberRepository projectMemberRepository;
     private final AuthUtil authUtil;
+    private final SubscriptionService subscriptionService;
 
     @Override
     public List<ProjectSummaryResponse> getUserProjects() {
@@ -51,6 +53,10 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public ProjectResponse createProject(ProjectRequest request) {
+        if (!subscriptionService.canCreateNewProject()) {
+            throw new RuntimeException("Project creation limit reached for your subscription plan.");
+        }
+
         Long userId = authUtil.getCurrentUserId();
 
 //        Here it will make a db call
