@@ -2,7 +2,7 @@ package com.kushagramathur.lovable_clone.controller;
 
 import com.kushagramathur.lovable_clone.dto.project.FileContentResponse;
 import com.kushagramathur.lovable_clone.dto.project.FileNode;
-import com.kushagramathur.lovable_clone.service.FileService;
+import com.kushagramathur.lovable_clone.service.ProjectFileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,12 +16,12 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/projects/{projectId}/files")
 public class FileController {
-    private final FileService fileService;
+    private final ProjectFileService projectFileService;
 
     @GetMapping
     public ResponseEntity<List<FileNode>> getFileTree(@PathVariable Long projectId) {
         Long userId = 1L;
-        return ResponseEntity.ok(fileService.getFileTree(projectId, userId));
+        return ResponseEntity.ok(projectFileService.getFileTree(projectId, userId));
     }
 
     @GetMapping("/{*path}")
@@ -30,6 +30,6 @@ public class FileController {
             @PathVariable String path
     ) {
         Long userId = 1L;
-        return ResponseEntity.ok(fileService.getFileContent(projectId, path, userId));
+        return ResponseEntity.ok(projectFileService.getFileContent(projectId, path, userId));
     }
 }
