@@ -16,7 +16,7 @@ import java.time.Instant;
 @Table(name = "chat_sessions")
 public class ChatSession {
 
-    @Embedded
+    @EmbeddedId
     private ChatSessionId id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

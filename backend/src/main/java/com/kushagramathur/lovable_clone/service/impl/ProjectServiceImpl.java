@@ -15,6 +15,7 @@ import com.kushagramathur.lovable_clone.repository.ProjectRepository;
 import com.kushagramathur.lovable_clone.repository.UserRepository;
 import com.kushagramathur.lovable_clone.security.AuthUtil;
 import com.kushagramathur.lovable_clone.service.ProjectService;
+import com.kushagramathur.lovable_clone.service.ProjectTemplateService;
 import com.kushagramathur.lovable_clone.service.SubscriptionService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final ProjectMemberRepository projectMemberRepository;
     private final AuthUtil authUtil;
     private final SubscriptionService subscriptionService;
+    private final ProjectTemplateService projectTemplateService;
 
     @Override
     public List<ProjectSummaryResponse> getUserProjects() {
@@ -86,6 +88,9 @@ public class ProjectServiceImpl implements ProjectService {
         projectMemberRepository.save(projectMember);
 
         project = projectRepository.save(project);
+
+        projectTemplateService.initializeProjectFromTemplate(project.getId());
+
         return projectMapper.toProjectResponse(project);
     }
 
