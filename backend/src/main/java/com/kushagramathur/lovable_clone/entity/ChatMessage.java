@@ -6,6 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
+import java.util.List;
 
 @Entity
 @Getter
@@ -27,12 +28,16 @@ public class ChatMessage {
     })
     private ChatSession chatSession;
 
-    @Column(nullable = false, columnDefinition = "text")
-    private String content;
+    @Column(columnDefinition = "text")
+    private String content;  // NULL unless role is USER
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private MessageRole role;
+
+    @OneToMany(mappedBy = "chatMessage", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("sequenceOrder ASC")
+    List<ChatEvent> events;  // Empty list if role is USER
 
     private Integer tokensUsed = 0;
 
