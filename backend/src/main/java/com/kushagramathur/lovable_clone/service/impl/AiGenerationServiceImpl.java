@@ -12,9 +12,11 @@ import com.kushagramathur.lovable_clone.repository.*;
 import com.kushagramathur.lovable_clone.security.AuthUtil;
 import com.kushagramathur.lovable_clone.service.AiGenerationService;
 import com.kushagramathur.lovable_clone.service.ProjectFileService;
+import com.kushagramathur.lovable_clone.service.UsageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.metadata.Usage;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -42,12 +44,15 @@ public class AiGenerationServiceImpl implements AiGenerationService {
     private final ChatMessageRepository chatMessageRepository;
     private final ChatEventRepository chatEventRepository;
     private final LlmResponseParser llmResponseParser;
+    private final UsageService usageService;
 
     private static final Pattern FILE_TAG_PATTERN = Pattern.compile("<file path=\"([^\"]+)\">(.*?)</file>", Pattern.DOTALL);
 
     @Override
     @PreAuthorize("@security.canEditProject(#projectId)")
     public Flux<StreamResponse> streamResponse(String message, Long projectId) {
+        usageService.checkDailyTokensUsage();
+
         Long user = authUtil.getCurrentUserId();
 
         ChatSession chatSession = createChatSessionIfNotExists(user, projectId);
@@ -61,6 +66,7 @@ public class AiGenerationServiceImpl implements AiGenerationService {
 
         AtomicReference<Long> startTime = new AtomicReference<>(System.currentTimeMillis());
         AtomicReference<Long> endTime = new AtomicReference<>(0L);
+        AtomicReference<Usage> usageRef = new AtomicReference<>();
 
         return chatClient.prompt()
                 .system(PromptUtils.CODE_GENERATION_SYSTEM_PROMPT)
@@ -79,12 +85,16 @@ public class AiGenerationServiceImpl implements AiGenerationService {
                         }
                         fullResponseBuffer.append(content);
                     }
+
+                    if (response.getMetadata().getUsage() != null) {
+                        usageRef.set(response.getMetadata().getUsage());
+                    }
                 })
                 .doOnComplete(() -> {
                     Schedulers.boundedElastic().schedule(() -> {
                         parseAndSaveFiles(fullResponseBuffer.toString(), projectId);
                         long duration = (endTime.get() - startTime.get()) / 1000;
-                        finalizeChats(message, chatSession, fullResponseBuffer.toString(), duration);
+                        finalizeChats(message, chatSession, fullResponseBuffer.toString(), duration, usageRef.get());
                     });
                 })
                 .doOnError(error -> log.error("Error during AI response streaming", error))
@@ -94,20 +104,27 @@ public class AiGenerationServiceImpl implements AiGenerationService {
                 });
     }
 
-    private void finalizeChats(String userMessage, ChatSession chatSession, String fullText, Long duration) {
+    private void finalizeChats(String userMessage, ChatSession chatSession, String fullText, Long duration, Usage usage) {
         Long projectId = chatSession.getProject().getId();
+
+        if (usage != null) {
+            int totalTokens = usage.getTotalTokens();
+            usageService.recordTokenUsage(totalTokens);
+        }
 
         chatMessageRepository.save(
                 ChatMessage.builder()
                         .chatSession(chatSession)
                         .role(MessageRole.USER)
                         .content(userMessage)
+                        .tokensUsed(usage.getPromptTokens())
                         .build()
         );
 
         ChatMessage assistantMessage = ChatMessage.builder()
                         .chatSession(chatSession)
                         .role(MessageRole.ASSISTANT)
+                        .tokensUsed(usage.getCompletionTokens())
                         .build();
         assistantMessage = chatMessageRepository.save(assistantMessage);
 

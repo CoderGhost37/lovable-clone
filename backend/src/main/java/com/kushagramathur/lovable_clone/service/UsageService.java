@@ -1,11 +1,7 @@
 package com.kushagramathur.lovable_clone.service;
 
-import com.kushagramathur.lovable_clone.dto.subscription.PlanLimitsResponse;
-import com.kushagramathur.lovable_clone.dto.subscription.UsageTodayResponse;
-import org.jspecify.annotations.Nullable;
-
 public interface UsageService {
-    UsageTodayResponse getTodayUsageOfUser(Long userId);
+    void recordTokenUsage(int actualTokens);
 
-    PlanLimitsResponse getCurrentSubscriptionLimitsOfUser(Long userId);
+    void checkDailyTokensUsage();
 }
