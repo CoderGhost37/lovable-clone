@@ -1,5 +1,6 @@
 package com.kushagramathur.lovable_clone.service.impl;
 
+import com.kushagramathur.lovable_clone.dto.chat.StreamResponse;
 import com.kushagramathur.lovable_clone.entity.*;
 import com.kushagramathur.lovable_clone.enums.ChatEventType;
 import com.kushagramathur.lovable_clone.enums.MessageRole;
@@ -46,7 +47,7 @@ public class AiGenerationServiceImpl implements AiGenerationService {
 
     @Override
     @PreAuthorize("@security.canEditProject(#projectId)")
-    public Flux<String> streamResponse(String message, Long projectId) {
+    public Flux<StreamResponse> streamResponse(String message, Long projectId) {
         Long user = authUtil.getCurrentUserId();
 
         ChatSession chatSession = createChatSessionIfNotExists(user, projectId);
@@ -71,11 +72,13 @@ public class AiGenerationServiceImpl implements AiGenerationService {
                 .stream()
                 .chatResponse()
                 .doOnNext(response -> {
-                    String content = Objects.requireNonNull(response.getResult().getOutput().getText());
-                    if (content != null && !content.isEmpty() && endTime.get() == 0L) {
-                        endTime.set(System.currentTimeMillis());
+                    String content = response.getResult().getOutput().getText();
+                    if (content != null && !content.isEmpty()) {
+                        if (endTime.get() == 0L) {
+                            endTime.set(System.currentTimeMillis());
+                        }
+                        fullResponseBuffer.append(content);
                     }
-                    fullResponseBuffer.append(content);
                 })
                 .doOnComplete(() -> {
                     Schedulers.boundedElastic().schedule(() -> {
@@ -85,7 +88,10 @@ public class AiGenerationServiceImpl implements AiGenerationService {
                     });
                 })
                 .doOnError(error -> log.error("Error during AI response streaming", error))
-                .map(chatResponse -> Objects.requireNonNull(chatResponse.getResult().getOutput().getText()));
+                .map(chatResponse -> {
+                    String text = chatResponse.getResult().getOutput().getText();
+                    return new StreamResponse(text != null ? text : "");
+                });
     }
 
     private void finalizeChats(String userMessage, ChatSession chatSession, String fullText, Long duration) {

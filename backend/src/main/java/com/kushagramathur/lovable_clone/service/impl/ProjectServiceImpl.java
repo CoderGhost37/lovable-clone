@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -41,16 +40,20 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public List<ProjectSummaryResponse> getUserProjects() {
         Long userId = authUtil.getCurrentUserId();
-        var projects = projectRepository.findAllAccessibleByUser(userId);
-        return projectMapper.toListOfProjectSummaryResponse(projects);
+        var projectsWithRole = projectRepository.findAllAccessibleByUser(userId);
+        return projectsWithRole.stream()
+                .map(pr -> projectMapper.toProjectSummaryResponse(pr.getProject(), pr.getRole()))
+                .toList();
     }
 
     @Override
-    @PreAuthorize("@security.canViewProject(#projectId)")
-    public ProjectResponse getUserProjectById(Long id) {
+    @PreAuthorize("@security.canViewProject(#id)")
+    public ProjectSummaryResponse getUserProjectById(Long id) {
         Long userId = authUtil.getCurrentUserId();
-        Project project = getAccessibleProjectById(id, userId);
-        return projectMapper.toProjectResponse(project);
+        var projectWithRole = projectRepository
+                .findAccessibleProjectByIdWithRole(id, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project", id.toString()));
+        return projectMapper.toProjectSummaryResponse(projectWithRole.getProject(), projectWithRole.getRole());
     }
 
     @Override
@@ -61,13 +64,11 @@ public class ProjectServiceImpl implements ProjectService {
 
         Long userId = authUtil.getCurrentUserId();
 
-//        Here it will make a db call
-//        User owner = userRepository.findById(userId).orElseThrow(
-//                () -> new ResourceNotFoundException("User", userId.toString())
-//        );
+        if (request == null || request.name() == null || request.name().isBlank()) {
+            throw new IllegalArgumentException("Project name is required");
+        }
 
-//        Get a referance (no db call) for the user object because here we are just using it to connect it to a project.
-//        It can be used only in a transactional contenxt.
+        // Get a reference for the user (no db call for full entity) - will be used to set membership.
         User owner = userRepository.getReferenceById(userId);
 
         Project project = Project
@@ -75,6 +76,9 @@ public class ProjectServiceImpl implements ProjectService {
                 .name(request.name())
                 .isPublic(false)
                 .build();
+
+        // Persist project first so we have an id to reference in ProjectMember
+        project = projectRepository.save(project);
 
         ProjectMemberId projectMemberId = new ProjectMemberId(project.getId(), owner.getId());
         ProjectMember projectMember = ProjectMember.builder()
@@ -86,8 +90,6 @@ public class ProjectServiceImpl implements ProjectService {
                 .project(project)
                 .build();
         projectMemberRepository.save(projectMember);
-
-        project = projectRepository.save(project);
 
         projectTemplateService.initializeProjectFromTemplate(project.getId());
 
