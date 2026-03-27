@@ -1,0 +1,17 @@
+{
+  "name": "lovable-proxy",
+  "version": "1.0.0",
+  "description": "Wildcard Proxy for Lovable Project Previews",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "http-proxy": "^1.18.1",
+    "ioredis": "^5.3.5"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
