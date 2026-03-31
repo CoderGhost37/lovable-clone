@@ -9,6 +9,7 @@ import com.kushagramathur.distributed_lovable_clone.account_service.repository.P
 import com.kushagramathur.distributed_lovable_clone.account_service.repository.SubscriptionRepository;
 import com.kushagramathur.distributed_lovable_clone.account_service.repository.UserRepository;
 import com.kushagramathur.distributed_lovable_clone.account_service.service.SubscriptionService;
+import com.kushagramathur.distributed_lovable_clone.common_lib.dto.PlanDto;
 import com.kushagramathur.distributed_lovable_clone.common_lib.enums.SubscriptionStatus;
 import com.kushagramathur.distributed_lovable_clone.common_lib.error.ResourceNotFoundException;
 import com.kushagramathur.distributed_lovable_clone.common_lib.security.AuthUtil;
@@ -134,6 +135,12 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
         subscription.setStatus(SubscriptionStatus.PAST_DUE);
         subscriptionRepository.save(subscription);
+    }
+
+    @Override
+    public PlanDto getCurrentSubscribedPlanByUser() {
+        SubscriptionResponse currentSubscription = getCurrentSubscription();
+        return currentSubscription.plan();
     }
 
     // UTILITY METHODS

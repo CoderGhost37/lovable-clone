@@ -1,6 +1,7 @@
 package com.kushagramathur.distributed_lovable_clone.account_service.service;
 
 import com.kushagramathur.distributed_lovable_clone.account_service.dto.subscription.SubscriptionResponse;
+import com.kushagramathur.distributed_lovable_clone.common_lib.dto.PlanDto;
 import com.kushagramathur.distributed_lovable_clone.common_lib.enums.SubscriptionStatus;
 
 import java.time.Instant;
@@ -17,4 +18,6 @@ public interface SubscriptionService {
     void renewSubscriptionPeriod(String gatewaySubscriptionId, Instant periodStart, Instant periodEnd);
 
     void markSubscriptionPastDue(String gatewaySubscriptionId);
+
+    PlanDto getCurrentSubscribedPlanByUser();
 }
