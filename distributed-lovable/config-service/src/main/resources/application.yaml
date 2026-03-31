@@ -1,3 +1,13 @@
 spring:
   application:
     name: config-service
+
+  cloud:
+    config.server.git:
+      uri: https://github.com/CoderGhost37/lovable-config-server
+      username: CoderGhost37
+      password: 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
+      default-label: main
+
+server:
+  port: 8888
