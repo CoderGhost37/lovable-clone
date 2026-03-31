@@ -1,6 +1,6 @@
-package com.kushagramathur.lovable_clone.repository;
+package com.kushagramathur.distributed_lovable_clone.account_service.repository;
 
-import com.kushagramathur.lovable_clone.entity.User;
+import com.kushagramathur.distributed_lovable_clone.account_service.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

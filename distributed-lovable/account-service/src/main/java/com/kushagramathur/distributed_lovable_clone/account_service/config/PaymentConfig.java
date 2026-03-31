@@ -1,4 +1,4 @@
-package com.kushagramathur.lovable_clone.config;
+package com.kushagramathur.distributed_lovable_clone.account_service.config;
 
 import com.stripe.Stripe;
 import jakarta.annotation.PostConstruct;

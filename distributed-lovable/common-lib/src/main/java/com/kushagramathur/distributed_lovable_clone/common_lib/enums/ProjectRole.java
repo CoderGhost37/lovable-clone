@@ -1,10 +1,11 @@
-package com.kushagramathur.lovable_clone.enums;
+package com.kushagramathur.distributed_lovable_clone.common_lib.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Set;
-import static com.kushagramathur.lovable_clone.enums.ProjectPermission.*;
+
+import static com.kushagramathur.distributed_lovable_clone.common_lib.enums.ProjectPermission.*;
 
 @RequiredArgsConstructor
 @Getter

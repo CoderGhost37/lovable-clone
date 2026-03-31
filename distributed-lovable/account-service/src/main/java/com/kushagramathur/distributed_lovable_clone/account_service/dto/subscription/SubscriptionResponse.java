@@ -1,4 +1,4 @@
-package com.kushagramathur.lovable_clone.dto.subscription;
+package com.kushagramathur.distributed_lovable_clone.account_service.dto.subscription;
 
 import java.time.Instant;
 

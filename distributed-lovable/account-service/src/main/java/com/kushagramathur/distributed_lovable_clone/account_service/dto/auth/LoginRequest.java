@@ -1,4 +1,4 @@
-package com.kushagramathur.lovable_clone.dto.auth;
+package com.kushagramathur.distributed_lovable_clone.account_service.dto.auth;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

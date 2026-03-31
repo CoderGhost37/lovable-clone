@@ -1,14 +1,14 @@
-package com.kushagramathur.lovable_clone.service.impl;
+package com.kushagramathur.distributed_lovable_clone.account_service.service.impl;
 
-import com.kushagramathur.lovable_clone.dto.auth.AuthResponse;
-import com.kushagramathur.lovable_clone.dto.auth.LoginRequest;
-import com.kushagramathur.lovable_clone.dto.auth.SignupRequest;
-import com.kushagramathur.lovable_clone.entity.User;
-import com.kushagramathur.lovable_clone.error.BadRequestException;
-import com.kushagramathur.lovable_clone.mapper.UserMapper;
-import com.kushagramathur.lovable_clone.repository.UserRepository;
-import com.kushagramathur.lovable_clone.security.AuthUtil;
-import com.kushagramathur.lovable_clone.service.AuthService;
+import com.kushagramathur.distributed_lovable_clone.account_service.dto.auth.AuthResponse;
+import com.kushagramathur.distributed_lovable_clone.account_service.dto.auth.LoginRequest;
+import com.kushagramathur.distributed_lovable_clone.account_service.dto.auth.SignupRequest;
+import com.kushagramathur.distributed_lovable_clone.account_service.entity.User;
+import com.kushagramathur.distributed_lovable_clone.common_lib.error.BadRequestException;
+import com.kushagramathur.distributed_lovable_clone.account_service.mapper.UserMapper;
+import com.kushagramathur.distributed_lovable_clone.account_service.repository.UserRepository;
+import com.kushagramathur.distributed_lovable_clone.common_lib.security.AuthUtil;
+import com.kushagramathur.distributed_lovable_clone.account_service.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -35,7 +35,7 @@ public class AuthServiceImpl implements AuthService {
         user.setPassword(passwordEncoder.encode(request.password()));
         userRepository.save(user);
 
-        String token = authUtil.generateAccessToken(user);
+        String token = authUtil.generateAccessToken(userMapper.toUserDto(user));
 
         return new AuthResponse(token, userMapper.toUserProfileResponse(user));
     }
@@ -47,7 +47,7 @@ public class AuthServiceImpl implements AuthService {
         );
 
         User user = (User) authentication.getPrincipal();
-        String token = authUtil.generateAccessToken(user);
+        String token = authUtil.generateAccessToken(userMapper.toUserDto(user));
 
         return new AuthResponse(token, userMapper.toUserProfileResponse(user));
     }

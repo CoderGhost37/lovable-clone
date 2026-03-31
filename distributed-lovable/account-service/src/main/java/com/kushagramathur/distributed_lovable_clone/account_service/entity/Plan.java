@@ -1,4 +1,4 @@
-package com.kushagramathur.lovable_clone.entity;
+package com.kushagramathur.distributed_lovable_clone.account_service.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;

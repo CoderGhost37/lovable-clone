@@ -1,8 +1,9 @@
-package com.kushagramathur.lovable_clone.service;
+package com.kushagramathur.distributed_lovable_clone.account_service.service;
 
-import com.kushagramathur.lovable_clone.dto.auth.AuthResponse;
-import com.kushagramathur.lovable_clone.dto.auth.LoginRequest;
-import com.kushagramathur.lovable_clone.dto.auth.SignupRequest;
+
+import com.kushagramathur.distributed_lovable_clone.account_service.dto.auth.AuthResponse;
+import com.kushagramathur.distributed_lovable_clone.account_service.dto.auth.LoginRequest;
+import com.kushagramathur.distributed_lovable_clone.account_service.dto.auth.SignupRequest;
 
 public interface AuthService {
     AuthResponse signup(SignupRequest request);
