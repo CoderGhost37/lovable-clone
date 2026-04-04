@@ -6,7 +6,7 @@ spring:
     config.server.git:
       uri: https://github.com/CoderGhost37/lovable-config-server
       username: CoderGhost37
-      password: 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
+      password:
       default-label: main
 
 server:

@@ -29,6 +29,7 @@ public class AuthUtil {
         return Jwts.builder()
                 .subject(user.username())
                 .claim("userId", user.id().toString())
+                .claim("name", user.name())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24)) // 24 hours
                 .signWith(getSecretKey())
@@ -43,8 +44,9 @@ public class AuthUtil {
                 .getPayload();
 
         Long userId = Long.parseLong(claims.get("userId", String.class));
+        String name = claims.get("name", String.class);
         String username = claims.getSubject();
-        return new JwtUserPrinciple(userId, username, null, new ArrayList<>());
+        return new JwtUserPrinciple(userId, name, username, null, new ArrayList<>());
     }
 
     public Long getCurrentUserId() {

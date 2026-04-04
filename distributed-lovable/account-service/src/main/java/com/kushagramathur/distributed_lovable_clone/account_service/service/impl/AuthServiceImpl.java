@@ -9,12 +9,15 @@ import com.kushagramathur.distributed_lovable_clone.account_service.mapper.UserM
 import com.kushagramathur.distributed_lovable_clone.account_service.repository.UserRepository;
 import com.kushagramathur.distributed_lovable_clone.common_lib.security.AuthUtil;
 import com.kushagramathur.distributed_lovable_clone.account_service.service.AuthService;
+import com.kushagramathur.distributed_lovable_clone.common_lib.security.JwtUserPrinciple;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +38,14 @@ public class AuthServiceImpl implements AuthService {
         user.setPassword(passwordEncoder.encode(request.password()));
         userRepository.save(user);
 
+        JwtUserPrinciple jwtUserPrinciple = new JwtUserPrinciple(
+                user.getId(),
+                user.getName(),
+                user.getUsername(),
+                null,
+                new ArrayList<>()
+        );
+
         String token = authUtil.generateAccessToken(userMapper.toUserDto(user));
 
         return new AuthResponse(token, userMapper.toUserProfileResponse(user));
@@ -46,8 +57,8 @@ public class AuthServiceImpl implements AuthService {
                 new UsernamePasswordAuthenticationToken(request.username(), request.password())
         );
 
-        User user = (User) authentication.getPrincipal();
-        String token = authUtil.generateAccessToken(userMapper.toUserDto(user));
+        JwtUserPrinciple user = (JwtUserPrinciple) authentication.getPrincipal();
+        String token = authUtil.generateAccessToken(user);
 
         return new AuthResponse(token, userMapper.toUserProfileResponse(user));
     }
