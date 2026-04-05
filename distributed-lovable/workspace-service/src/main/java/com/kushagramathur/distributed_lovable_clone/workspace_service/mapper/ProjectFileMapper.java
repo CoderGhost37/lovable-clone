@@ -1,6 +1,6 @@
 package com.kushagramathur.distributed_lovable_clone.workspace_service.mapper;
 
-import com.kushagramathur.distributed_lovable_clone.workspace_service.dto.project.FileNode;
+import com.kushagramathur.distributed_lovable_clone.common_lib.dto.FileNode;
 import com.kushagramathur.distributed_lovable_clone.workspace_service.entity.ProjectFile;
 import org.mapstruct.Mapper;
 
