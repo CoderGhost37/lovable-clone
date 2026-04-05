@@ -1,8 +1,8 @@
-package com.kushagramathur.distributed_lovable_clone.workspace_service.security;
+package com.kushagramathur.distributed_lovable_clone.intelligence_service.security;
 
 import com.kushagramathur.distributed_lovable_clone.common_lib.enums.ProjectPermission;
 import com.kushagramathur.distributed_lovable_clone.common_lib.security.AuthUtil;
-import com.kushagramathur.distributed_lovable_clone.workspace_service.repository.ProjectMemberRepository;
+import com.kushagramathur.distributed_lovable_clone.intelligence_service.client.WorkspaceClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -14,17 +14,12 @@ import org.springframework.stereotype.Component;
 @EnableWebSecurity
 public class SecurityExpressions {
 
-    private final ProjectMemberRepository projectMemberRepository;
     private final AuthUtil authUtil;
+    private final WorkspaceClient workspaceClient;
 
-    public boolean hasPermission(Long projectId, ProjectPermission projectPermission) {
-        Long userId = authUtil.getCurrentUserId();
-
-            return projectMemberRepository.findRoleByProjectIdAndUserId(projectId, userId)
-                    .map(role -> role.getPermissions().contains(projectPermission))
-                    .orElse(false);
-        }
-
+    private boolean hasPermission(Long projectId, ProjectPermission projectPermission) {
+        return workspaceClient.checkPermission(projectId, projectPermission);
+    }
 
     public boolean canViewProject(Long projectId) {
         return hasPermission(projectId, ProjectPermission.VIEW);

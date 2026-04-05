@@ -46,9 +46,9 @@ public class AuthServiceImpl implements AuthService {
                 new ArrayList<>()
         );
 
-        String token = authUtil.generateAccessToken(userMapper.toUserDto(user));
+        String token = authUtil.generateAccessToken(jwtUserPrinciple);
 
-        return new AuthResponse(token, userMapper.toUserProfileResponse(user));
+        return new AuthResponse(token, userMapper.toUserProfileResponse(jwtUserPrinciple));
     }
 
     @Override

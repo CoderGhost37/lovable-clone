@@ -2,6 +2,7 @@ package com.kushagramathur.distributed_lovable_clone.workspace_service.service.i
 
 import com.kushagramathur.distributed_lovable_clone.common_lib.dto.PlanDto;
 import com.kushagramathur.distributed_lovable_clone.common_lib.dto.UserDto;
+import com.kushagramathur.distributed_lovable_clone.common_lib.enums.ProjectPermission;
 import com.kushagramathur.distributed_lovable_clone.workspace_service.client.AccountClient;
 import com.kushagramathur.distributed_lovable_clone.workspace_service.dto.project.ProjectRequest;
 import com.kushagramathur.distributed_lovable_clone.workspace_service.dto.project.ProjectResponse;
@@ -15,6 +16,7 @@ import com.kushagramathur.distributed_lovable_clone.workspace_service.mapper.Pro
 import com.kushagramathur.distributed_lovable_clone.workspace_service.repository.ProjectMemberRepository;
 import com.kushagramathur.distributed_lovable_clone.workspace_service.repository.ProjectRepository;
 import com.kushagramathur.distributed_lovable_clone.common_lib.security.AuthUtil;
+import com.kushagramathur.distributed_lovable_clone.workspace_service.security.SecurityExpressions;
 import com.kushagramathur.distributed_lovable_clone.workspace_service.service.ProjectService;
 import com.kushagramathur.distributed_lovable_clone.workspace_service.service.ProjectTemplateService;
 import jakarta.transaction.Transactional;
@@ -35,6 +37,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final AuthUtil authUtil;
     private final ProjectTemplateService projectTemplateService;
     private final AccountClient accountClient;
+    private final SecurityExpressions securityExpressions;
 
     @Override
     public List<ProjectSummaryResponse> getUserProjects() {
@@ -109,6 +112,11 @@ public class ProjectServiceImpl implements ProjectService {
 
         project.setDeletedAt(Instant.now());
         projectRepository.save(project);
+    }
+
+    @Override
+    public boolean hasPermission(Long projectId, ProjectPermission permission) {
+        return securityExpressions.hasPermission(projectId, permission);
     }
 
     // INTERNAL FUNCTIONS

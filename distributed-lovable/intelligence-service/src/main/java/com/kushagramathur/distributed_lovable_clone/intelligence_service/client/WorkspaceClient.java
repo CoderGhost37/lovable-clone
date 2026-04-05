@@ -1,6 +1,7 @@
 package com.kushagramathur.distributed_lovable_clone.intelligence_service.client;
 
 import com.kushagramathur.distributed_lovable_clone.common_lib.dto.FileTreeDto;
+import com.kushagramathur.distributed_lovable_clone.common_lib.enums.ProjectPermission;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,5 +15,8 @@ public interface WorkspaceClient {
 
     @GetMapping("/internal/v1/projects/{projectId}/files/content")
     String getFileContent(@PathVariable("projectId") Long projectId, @RequestParam("filePath") String filePath);
+
+    @GetMapping("/internal/v1/projects/{projectId}/permissions/check")
+    boolean checkPermission(@PathVariable("projectId") Long projectId, @RequestParam("permission") ProjectPermission permission);
 
 }

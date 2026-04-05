@@ -1,6 +1,7 @@
 package com.kushagramathur.distributed_lovable_clone.workspace_service.controller;
 
 import com.kushagramathur.distributed_lovable_clone.common_lib.dto.FileTreeDto;
+import com.kushagramathur.distributed_lovable_clone.common_lib.enums.ProjectPermission;
 import com.kushagramathur.distributed_lovable_clone.workspace_service.service.ProjectFileService;
 import com.kushagramathur.distributed_lovable_clone.workspace_service.service.ProjectService;
 import lombok.RequiredArgsConstructor;
@@ -22,5 +23,12 @@ public class InternalWorkspaceController {
     @GetMapping("/projects/{projectId}/files/content")
     public String getFileContent(@PathVariable Long projectId, @RequestParam String filePath) {
         return projectFileService.getFileContent(projectId, filePath);
+    }
+
+    @GetMapping("/projects/{projectId}/permissions/check")
+    public Boolean checkProjectPermission(
+            @PathVariable Long projectId,
+            @RequestParam ProjectPermission permission) {
+        return projectService.hasPermission(projectId, permission);
     }
 }
