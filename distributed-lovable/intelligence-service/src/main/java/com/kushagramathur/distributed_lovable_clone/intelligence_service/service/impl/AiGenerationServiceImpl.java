@@ -1,5 +1,6 @@
 package com.kushagramathur.distributed_lovable_clone.intelligence_service.service.impl;
 
+import com.kushagramathur.distributed_lovable_clone.intelligence_service.client.WorkspaceClient;
 import com.kushagramathur.distributed_lovable_clone.intelligence_service.dto.chat.StreamResponse;
 import com.kushagramathur.distributed_lovable_clone.intelligence_service.entity.*;
 import com.kushagramathur.distributed_lovable_clone.common_lib.enums.ChatEventType;
@@ -7,11 +8,13 @@ import com.kushagramathur.distributed_lovable_clone.common_lib.enums.MessageRole
 import com.kushagramathur.distributed_lovable_clone.intelligence_service.llm.LlmResponseParser;
 import com.kushagramathur.distributed_lovable_clone.intelligence_service.llm.PromptUtils;
 import com.kushagramathur.distributed_lovable_clone.intelligence_service.llm.advisors.FileTreeContextAdvisor;
+import com.kushagramathur.distributed_lovable_clone.intelligence_service.llm.tools.CodeGenerationTools;
 import com.kushagramathur.distributed_lovable_clone.intelligence_service.repository.*;
 import com.kushagramathur.distributed_lovable_clone.common_lib.security.AuthUtil;
 import com.kushagramathur.distributed_lovable_clone.intelligence_service.service.AiGenerationService;
 import com.kushagramathur.distributed_lovable_clone.intelligence_service.service.UsageService;
 import lombok.RequiredArgsConstructor;
+import lombok.With;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.metadata.Usage;
@@ -39,6 +42,7 @@ public class AiGenerationServiceImpl implements AiGenerationService {
     private final ChatEventRepository chatEventRepository;
     private final LlmResponseParser llmResponseParser;
     private final UsageService usageService;
+    private final WorkspaceClient workspaceClient;
 
     private static final Pattern FILE_TAG_PATTERN = Pattern.compile("<file path=\"([^\"]+)\">(.*?)</file>", Pattern.DOTALL);
 
@@ -57,6 +61,7 @@ public class AiGenerationServiceImpl implements AiGenerationService {
         );
 
         StringBuilder fullResponseBuffer = new StringBuilder();
+        CodeGenerationTools codeGenerationTools = new CodeGenerationTools(projectId, workspaceClient);
 
         AtomicReference<Long> startTime = new AtomicReference<>(System.currentTimeMillis());
         AtomicReference<Long> endTime = new AtomicReference<>(0L);
@@ -65,6 +70,7 @@ public class AiGenerationServiceImpl implements AiGenerationService {
         return chatClient.prompt()
                 .system(PromptUtils.CODE_GENERATION_SYSTEM_PROMPT)
                 .user(message)
+                .tools(codeGenerationTools)
                 .advisors(advisorSpec -> {
                     advisorSpec.params(advisorParams);
                     advisorSpec.advisors(fileTreeContextAdvisor);

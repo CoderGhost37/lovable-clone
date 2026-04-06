@@ -8,6 +8,7 @@ import com.kushagramathur.lovable_clone.error.ResourceNotFoundException;
 import com.kushagramathur.lovable_clone.llm.LlmResponseParser;
 import com.kushagramathur.lovable_clone.llm.PromptUtils;
 import com.kushagramathur.lovable_clone.llm.advisors.FileTreeContextAdvisor;
+import com.kushagramathur.lovable_clone.llm.tools.CodeGenerationTools;
 import com.kushagramathur.lovable_clone.repository.*;
 import com.kushagramathur.lovable_clone.security.AuthUtil;
 import com.kushagramathur.lovable_clone.service.AiGenerationService;
@@ -63,6 +64,7 @@ public class AiGenerationServiceImpl implements AiGenerationService {
         );
 
         StringBuilder fullResponseBuffer = new StringBuilder();
+        CodeGenerationTools codeGenerationTools = new CodeGenerationTools(projectId, projectFileService);
 
         AtomicReference<Long> startTime = new AtomicReference<>(System.currentTimeMillis());
         AtomicReference<Long> endTime = new AtomicReference<>(0L);
@@ -71,6 +73,7 @@ public class AiGenerationServiceImpl implements AiGenerationService {
         return chatClient.prompt()
                 .system(PromptUtils.CODE_GENERATION_SYSTEM_PROMPT)
                 .user(message)
+                .tools(codeGenerationTools)
                 .advisors(advisorSpec -> {
                     advisorSpec.params(advisorParams);
                     advisorSpec.advisors(fileTreeContextAdvisor);
