@@ -1,5 +1,7 @@
 package com.kushagramathur.distributed_lovable_clone.intelligence_service.service.impl;
 
+import com.kushagramathur.distributed_lovable_clone.common_lib.enums.ChatEventStatus;
+import com.kushagramathur.distributed_lovable_clone.common_lib.event.FileStoreRequestEvent;
 import com.kushagramathur.distributed_lovable_clone.intelligence_service.client.WorkspaceClient;
 import com.kushagramathur.distributed_lovable_clone.intelligence_service.dto.chat.StreamResponse;
 import com.kushagramathur.distributed_lovable_clone.intelligence_service.entity.*;
@@ -18,6 +20,7 @@ import lombok.With;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.metadata.Usage;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -25,6 +28,7 @@ import reactor.core.scheduler.Schedulers;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -43,6 +47,7 @@ public class AiGenerationServiceImpl implements AiGenerationService {
     private final LlmResponseParser llmResponseParser;
     private final UsageService usageService;
     private final WorkspaceClient workspaceClient;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     private static final Pattern FILE_TAG_PATTERN = Pattern.compile("<file path=\"([^\"]+)\">(.*?)</file>", Pattern.DOTALL);
 
@@ -51,12 +56,12 @@ public class AiGenerationServiceImpl implements AiGenerationService {
     public Flux<StreamResponse> streamResponse(String message, Long projectId) {
         usageService.checkDailyTokensUsage();
 
-        Long user = authUtil.getCurrentUserId();
+        Long userId = authUtil.getCurrentUserId();
 
-        ChatSession chatSession = createChatSessionIfNotExists(user, projectId);
+        ChatSession chatSession = createChatSessionIfNotExists(userId, projectId);
 
         Map<String, Object> advisorParams = Map.of(
-                "userId", user,
+                "userId", userId,
                 "projectId", projectId
         );
 
@@ -94,7 +99,7 @@ public class AiGenerationServiceImpl implements AiGenerationService {
                     Schedulers.boundedElastic().schedule(() -> {
                         parseAndSaveFiles(fullResponseBuffer.toString(), projectId);
                         long duration = (endTime.get() - startTime.get()) / 1000;
-                        finalizeChats(message, chatSession, fullResponseBuffer.toString(), duration, usageRef.get());
+                        finalizeChats(message, chatSession, fullResponseBuffer.toString(), duration, usageRef.get(), userId);
                     });
                 })
                 .doOnError(error -> log.error("Error during AI response streaming", error))
@@ -104,7 +109,7 @@ public class AiGenerationServiceImpl implements AiGenerationService {
                 });
     }
 
-    private void finalizeChats(String userMessage, ChatSession chatSession, String fullText, Long duration, Usage usage) {
+    private void finalizeChats(String userMessage, ChatSession chatSession, String fullText, Long duration, Usage usage, Long userId) {
         Long projectId = chatSession.getId().getProjectId();
 
         if (usage != null) {
@@ -131,6 +136,7 @@ public class AiGenerationServiceImpl implements AiGenerationService {
         List<ChatEvent> chatEventList = llmResponseParser.parseChatEvents(fullText, assistantMessage);
         chatEventList.add(0, ChatEvent.builder()
                         .type(ChatEventType.THOUGHT)
+                        .status(ChatEventStatus.CONFIRMED)
                         .chatMessage(assistantMessage)
                         .content("Thought for " + duration + "s")
                         .sequenceOrder(0)
@@ -139,7 +145,15 @@ public class AiGenerationServiceImpl implements AiGenerationService {
         chatEventList.stream()
                 .filter(event -> event.getType() == ChatEventType.FILE_EDIT)
                 .forEach(event -> {
-                    // TODO: trigger kafka event for file edits here, so workspace service can listen and update files in real-time
+                    String sagaId = UUID.randomUUID().toString();
+                    FileStoreRequestEvent fileStoreRequestEvent = new FileStoreRequestEvent(
+                            projectId,
+                            sagaId,
+                            event.getFilePath(),
+                            event.getContent(),
+                            userId
+                    );
+                    kafkaTemplate.send("file-storage-request-event", "project"+projectId, fileStoreRequestEvent);
                 });
 
         chatEventRepository.saveAll(chatEventList);

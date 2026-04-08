@@ -1,5 +1,6 @@
 package com.kushagramathur.distributed_lovable_clone.intelligence_service.entity;
 
+import com.kushagramathur.distributed_lovable_clone.common_lib.enums.ChatEventStatus;
 import com.kushagramathur.distributed_lovable_clone.common_lib.enums.ChatEventType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -38,6 +39,11 @@ public class ChatEvent {
 
     @Column(columnDefinition = "text")
     private String metadata;
+
+    private String sagaId;
+
+    @Enumerated(EnumType.STRING)
+    private ChatEventStatus status;
 
     @CreationTimestamp
     private Instant createdAt;
