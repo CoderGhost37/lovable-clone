@@ -3,22 +3,30 @@ package com.kushagramathur.distributed_lovable_clone.intelligence_service.securi
 import com.kushagramathur.distributed_lovable_clone.common_lib.enums.ProjectPermission;
 import com.kushagramathur.distributed_lovable_clone.common_lib.security.AuthUtil;
 import com.kushagramathur.distributed_lovable_clone.intelligence_service.client.WorkspaceClient;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.stereotype.Component;
 
 @Component("security")
 @RequiredArgsConstructor
-@EnableMethodSecurity
-@EnableWebSecurity
+@Slf4j
 public class SecurityExpressions {
 
     private final AuthUtil authUtil;
     private final WorkspaceClient workspaceClient;
 
     private boolean hasPermission(Long projectId, ProjectPermission projectPermission) {
-        return workspaceClient.checkPermission(projectId, projectPermission);
+        try {
+            return workspaceClient.checkPermission(projectId, projectPermission);
+        } catch (FeignException.Unauthorized e) {
+            log.warn("Token expired or invalid during permission check for project: {}", projectId);
+            throw new CredentialsExpiredException("JWT token is expired or invalid");
+        } catch (FeignException e) {
+            log.error("Workspace-service failed during permission check: {}", e.getMessage());
+            return false;
+        }
     }
 
     public boolean canViewProject(Long projectId) {

@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.Optional;
 
-@FeignClient(name = "account-service", path = "/account")
+@FeignClient(name = "account-service", path = "/account", url="${ACCOUNT_SERVICE_URI:}")
 public interface AccountClient {
 
     @GetMapping("/internal/v1/user/by-email")

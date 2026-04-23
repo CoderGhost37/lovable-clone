@@ -4,14 +4,10 @@ import com.kushagramathur.distributed_lovable_clone.common_lib.enums.ProjectPerm
 import com.kushagramathur.distributed_lovable_clone.common_lib.security.AuthUtil;
 import com.kushagramathur.distributed_lovable_clone.workspace_service.repository.ProjectMemberRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.stereotype.Component;
 
 @Component("security")
 @RequiredArgsConstructor
-@EnableMethodSecurity
-@EnableWebSecurity
 public class SecurityExpressions {
 
     private final ProjectMemberRepository projectMemberRepository;
