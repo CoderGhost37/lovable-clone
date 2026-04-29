@@ -31,6 +31,10 @@ spring:
   cloud:
     discovery:
       enabled: false
+    config.server.git:
+      uri: https://github.com/CoderGhost37/lovable-config-server
+      username: ${GIT_USERNAME}
+      password: ${GIT_PASSWORD}
 
 eureka:
   client:
