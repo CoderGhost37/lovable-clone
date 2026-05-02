@@ -4,7 +4,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm install
 COPY . .
-ENV API_BASE_URL=http://api.lovable.kushagramathur.com
+ENV VITE_API_BASE_URL=http://api.lovable.kushagramathur.com
 RUN npm run build
 
 # Stage 2: Serve the app with Nginx
