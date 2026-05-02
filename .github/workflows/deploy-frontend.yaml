@@ -1,0 +1,64 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+
+env:
+  SERVICE_NAME: lovable-frontend
+  IMAGE_NAME: coderghost37/lovable-frontend
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-deploy:
+    name: Build, Push, and Deploy to GKE
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          build-args: |
+            VITE_API_BASE_URL=${{ secrets.FRONTEND_API_BASE_URL }}
+          tags: |
+            docker.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            docker.io/${{ env.IMAGE_NAME }}:latest
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: '${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}'
+          service_account: '${{ secrets.GCP_SERVICE_ACCOUNT }}'
+
+      - name: Get GKE Credentials
+        uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: ${{ secrets.GCP_CLUSTER }}
+          location: ${{ secrets.GCP_ZONE }}
+
+      - name: Deploy to GKE
+        run: |
+          kubectl set image deployment/${{ env.SERVICE_NAME }} \
+            ${{ env.SERVICE_NAME }}=${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            -n lovable-frontend
+
+          kubectl rollout status deployment/${{ env.SERVICE_NAME }} -n lovable-frontend
