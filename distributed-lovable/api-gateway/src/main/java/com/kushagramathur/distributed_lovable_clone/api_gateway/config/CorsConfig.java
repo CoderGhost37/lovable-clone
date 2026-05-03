@@ -16,10 +16,9 @@ public class CorsConfig {
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration corsConfig = new CorsConfiguration();
         corsConfig.setAllowedOrigins(Arrays.asList(
-                "http://kushagramathur.com",
-                "http://www.kushagramathur.com",
-                "http://localhost:5173"
-        ));
+                "http://lovable.kushagramathur.com",
+                "https://lovable.kushagramathur.com",
+                "http://localhost:5173"));
         corsConfig.setMaxAge(3600L);
         corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         corsConfig.setAllowedHeaders(List.of("*"));
@@ -31,4 +30,3 @@ public class CorsConfig {
         return new CorsWebFilter(source);
     }
 }
-
