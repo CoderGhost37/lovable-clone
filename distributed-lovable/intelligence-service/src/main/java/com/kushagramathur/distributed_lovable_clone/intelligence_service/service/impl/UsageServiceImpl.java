@@ -22,8 +22,7 @@ public class UsageServiceImpl implements UsageService {
     private final AccountClient accountClient;
 
     @Override
-    public void recordTokenUsage(int actualTokens) {
-        Long userId = authUtil.getCurrentUserId();
+    public void recordTokenUsage(Long userId, int actualTokens) {
         LocalDate today = LocalDate.now();
 
         UsageLog todayLog = usageLogRepository.findByUserIdAndDate(userId, today).

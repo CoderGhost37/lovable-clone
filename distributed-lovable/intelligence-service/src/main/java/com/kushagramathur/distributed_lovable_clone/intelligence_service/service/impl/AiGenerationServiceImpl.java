@@ -97,9 +97,12 @@ public class AiGenerationServiceImpl implements AiGenerationService {
                 })
                 .doOnComplete(() -> {
                     Schedulers.boundedElastic().schedule(() -> {
-                        parseAndSaveFiles(fullResponseBuffer.toString(), projectId);
-                        long duration = (endTime.get() - startTime.get()) / 1000;
-                        finalizeChats(message, chatSession, fullResponseBuffer.toString(), duration, usageRef.get(), userId);
+                        try {
+                            long duration = (endTime.get() - startTime.get()) / 1000;
+                            finalizeChats(message, chatSession, fullResponseBuffer.toString(), duration, usageRef.get(), userId);
+                        } catch (Exception e) {
+                            log.error("Error in finalizeChats: ", e);
+                        }
                     });
                 })
                 .doOnError(error -> log.error("Error during AI response streaming", error))
@@ -117,7 +120,7 @@ public class AiGenerationServiceImpl implements AiGenerationService {
 
         if (usage != null) {
             int totalTokens = usage.getTotalTokens();
-            usageService.recordTokenUsage(totalTokens);
+            usageService.recordTokenUsage(chatSession.getId().getUserId(), totalTokens);
         }
 
         chatMessageRepository.save(
@@ -125,14 +128,14 @@ public class AiGenerationServiceImpl implements AiGenerationService {
                         .chatSession(chatSession)
                         .role(MessageRole.USER)
                         .content(userMessage)
-                        .tokensUsed(usage.getPromptTokens())
+                        .tokensUsed(usage != null ? usage.getPromptTokens() : 0)
                         .build()
         );
 
         ChatMessage assistantMessage = ChatMessage.builder()
                         .chatSession(chatSession)
                         .role(MessageRole.ASSISTANT)
-                        .tokensUsed(usage.getCompletionTokens())
+                        .tokensUsed(usage != null ? usage.getCompletionTokens() : 0)
                         .build();
         assistantMessage = chatMessageRepository.save(assistantMessage);
 
@@ -160,16 +163,6 @@ public class AiGenerationServiceImpl implements AiGenerationService {
                 });
 
         chatEventRepository.saveAll(chatEventList);
-    }
-
-    private void parseAndSaveFiles(String fullResponse, Long projectId) {
-        Matcher matcher = FILE_TAG_PATTERN.matcher(fullResponse);
-        while (matcher.find()) {
-            String filePath = matcher.group(1);
-            String fileContent = matcher.group(2).trim();
-
-            // TODO: trigger kafka event for file edits here, so workspace service can listen and update files in real-time
-        }
     }
 
     private ChatSession createChatSessionIfNotExists(Long userId, Long projectId) {
