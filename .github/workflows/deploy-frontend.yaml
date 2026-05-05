@@ -40,8 +40,6 @@ jobs:
           platforms: linux/amd64
           provenance: false
           sbom: false
-          build-args: |
-            VITE_API_BASE_URL=${{ secrets.FRONTEND_API_BASE_URL }}
           tags: |
             docker.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
             docker.io/${{ env.IMAGE_NAME }}:latest
