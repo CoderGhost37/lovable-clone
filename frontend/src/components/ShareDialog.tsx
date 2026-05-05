@@ -17,6 +17,23 @@ interface ShareDialogProps {
     onOpenChange?: (open: boolean) => void;
 }
 
+function getMemberDisplayName(member: ProjectMember): string {
+    return member.name?.trim() || member.username?.trim() || `User ${member.userId}`;
+}
+
+function getMemberSecondaryText(member: ProjectMember): string {
+    return member.username?.trim() || `User ID: ${member.userId}`;
+}
+
+function getMemberInitials(member: ProjectMember): string {
+    const source = member.name?.trim() || member.username?.trim();
+    if (!source) {
+        return "U";
+    }
+
+    return source.slice(0, 2).toUpperCase();
+}
+
 export function ShareDialog({ projectId, trigger, open, onOpenChange }: ShareDialogProps) {
     const { toast } = useToast();
     const [members, setMembers] = useState<ProjectMember[]>([]);
@@ -148,12 +165,12 @@ export function ShareDialog({ projectId, trigger, open, onOpenChange }: ShareDia
                                 <div key={member.userId} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
                                     <Avatar className="h-9 w-9">
                                         <AvatarFallback className="text-xs font-medium">
-                                            {member.name ? member.name.charAt(0).toUpperCase() : member.username.slice(0, 2).toUpperCase()}
+                                            {getMemberInitials(member)}
                                         </AvatarFallback>
                                     </Avatar>
                                     <div className="flex-1 min-w-0 text-sm">
-                                        <div className="font-medium truncate">{member.name || member.username}</div>
-                                        <div className="text-xs text-muted-foreground truncate">{member.username}</div>
+                                        <div className="font-medium truncate">{getMemberDisplayName(member)}</div>
+                                        <div className="text-xs text-muted-foreground truncate">{getMemberSecondaryText(member)}</div>
                                     </div>
 
                                     {member.role === 'OWNER' ? (

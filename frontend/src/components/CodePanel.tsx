@@ -7,6 +7,7 @@ import { api, FileNode, OPEN_TABS_KEY, ACTIVE_TAB_KEY } from "@/lib/api";
 interface CodePanelProps {
   projectId: string;
   updatedFiles: Map<string, string>;
+  refreshKey: number;
 }
 
 // Helper to find a file by path in the tree
@@ -22,7 +23,7 @@ function findFileInTree(files: FileNode[], targetPath: string): boolean {
 const getTabsKey = (projectId: string) => `${OPEN_TABS_KEY}_${projectId}`;
 const getActiveTabKey = (projectId: string) => `${ACTIVE_TAB_KEY}_${projectId}`;
 
-export function CodePanel({ projectId, updatedFiles }: CodePanelProps) {
+export function CodePanel({ projectId, updatedFiles, refreshKey }: CodePanelProps) {
   const [files, setFiles] = useState<FileNode[]>([]);
   const [openTabs, setOpenTabs] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string | null>(null);
@@ -74,18 +75,31 @@ export function CodePanel({ projectId, updatedFiles }: CodePanelProps) {
       try {
         const fileTree = await api.getFiles(projectId);
         setFiles(fileTree);
-        
-        // If no tabs are open, default to pages/Index.tsx
-        if (openTabs.length === 0) {
-          const defaultPaths = ["src/pages/Index.tsx", "pages/Index.tsx"];
-          for (const defaultPath of defaultPaths) {
-            if (findFileInTree(fileTree, defaultPath)) {
-              setOpenTabs([defaultPath]);
-              setActiveTab(defaultPath);
-              break;
+
+        setOpenTabs((prevTabs) => {
+          const nextTabs = prevTabs.filter((path) => findFileInTree(fileTree, path));
+
+          if (nextTabs.length === 0) {
+            const defaultPaths = ["src/pages/Index.tsx", "pages/Index.tsx"];
+            const defaultTab = defaultPaths.find((path) => findFileInTree(fileTree, path));
+
+            if (defaultTab) {
+              setActiveTab(defaultTab);
+              return [defaultTab];
             }
+
+            setActiveTab(null);
+            return [];
           }
-        }
+
+          setActiveTab((prevActiveTab) => (
+            prevActiveTab && findFileInTree(fileTree, prevActiveTab)
+              ? prevActiveTab
+              : nextTabs[0]
+          ));
+
+          return nextTabs;
+        });
       } catch (error) {
         console.error("Failed to load files:", error);
       } finally {
@@ -94,7 +108,7 @@ export function CodePanel({ projectId, updatedFiles }: CodePanelProps) {
     };
 
     loadFiles();
-  }, [projectId]);
+  }, [projectId, refreshKey]);
 
   // Load file content when active tab changes
   useEffect(() => {

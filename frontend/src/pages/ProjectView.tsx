@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Code, Sparkles, LogOut, RotateCcw, Maximize2, RefreshCw, MoreVertical, Trash, Download, Edit } from "lucide-react";
+import { Code, Sparkles, LogOut, RotateCcw, Maximize2, RefreshCw, MoreVertical, Trash, Download, Edit, ArrowLeft } from "lucide-react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { ChatPanel, ChatMessage } from "@/components/ChatPanel";
 import { CodePanel } from "@/components/CodePanel";
@@ -29,6 +29,7 @@ export function ProjectView() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("preview");
   const [updatedFiles, setUpdatedFiles] = useState<Map<string, string>>(new Map());
+  const [fileTreeRefreshKey, setFileTreeRefreshKey] = useState(0);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [runtimeError, setRuntimeError] = useState<RuntimeError | null>(null);
   const [project, setProject] = useState<ProjectResponse | null>(null);
@@ -87,6 +88,10 @@ export function ProjectView() {
     removeAuthToken();
     removeUserInfo();
     navigate("/login");
+  };
+
+  const handleBack = () => {
+    navigate("/projects");
   };
 
   const handleSendMessage = useCallback((content: string) => {
@@ -157,6 +162,7 @@ export function ProjectView() {
               : msg
           )
         );
+        setFileTreeRefreshKey((prev) => prev + 1);
         setIsStreaming(false);
       },
       (error) => {
@@ -288,6 +294,15 @@ Please analyze this error and fix the code to resolve it.`;
       {/* Header */}
       <header className="h-12 shrink-0 border-b border-border/50 bg-panel flex items-center justify-between px-3">
         <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleBack}
+            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            aria-label="Back to projects"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
           {project ? (
             <>
               <div
@@ -437,7 +452,11 @@ Please analyze this error and fix the code to resolve it.`;
             <div className="h-full">
               <div className="h-full relative">
                 <div className={cn("h-full absolute inset-0", viewMode !== "code" && "hidden")}>
-                  <CodePanel projectId={projectId} updatedFiles={updatedFiles} />
+                  <CodePanel
+                    projectId={projectId}
+                    updatedFiles={updatedFiles}
+                    refreshKey={fileTreeRefreshKey}
+                  />
                 </div>
                 <div className={cn("h-full absolute inset-0", viewMode !== "preview" && "hidden")}>
                   <PreviewPanel
