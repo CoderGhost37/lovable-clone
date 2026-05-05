@@ -38,7 +38,7 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
         return projectMemberRepository
                     .findByIdProjectId(projectId)
                     .stream()
-                    .map(projectMemberMapper::toProjectMemberResponseFromMember)
+                    .map(this::toMemberResponse)
                     .toList();
     }
 
@@ -109,6 +109,18 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     public Project getAccessibleProjectById(Long projectId, Long userId) {
         return projectRepository.findAccessibleProjectById(projectId, userId).orElseThrow(
                 () -> new ResourceNotFoundException("Project", projectId.toString())
+        );
+    }
+
+    private MemberResponse toMemberResponse(ProjectMember projectMember) {
+        UserDto user = accountClient.getUserById(projectMember.getId().getUserId());
+
+        return new MemberResponse(
+                user.id(),
+                user.username(),
+                user.name(),
+                projectMember.getRole(),
+                projectMember.getInvitedAt()
         );
     }
 }
