@@ -146,14 +146,12 @@ export const api = {
       }
     );
 
-    const data = await response.json();
-
     if (!response.ok) {
       console.error(`Error fetching file: ${response.status} ${response.statusText}`);
       throw new Error("Failed to fetch file content");
     }
 
-    return data.content;
+    return response.text();
   },
 
   async deploy(projectId: string): Promise<DeployResponse> {
