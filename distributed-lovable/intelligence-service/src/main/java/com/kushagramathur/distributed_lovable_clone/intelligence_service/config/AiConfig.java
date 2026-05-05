@@ -12,9 +12,7 @@ public class AiConfig {
     public ChatClient chatClient(ChatClient.Builder builder) {
         return builder
                 .defaultAdvisors(
-                        new SimpleLoggerAdvisor()
-                )
+                        new SimpleLoggerAdvisor())
                 .build();
     }
-
 }
